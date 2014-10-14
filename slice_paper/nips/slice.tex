@@ -1,0 +1,165 @@
+\section{A slice sampler for dependent NRMs}
+
+The slice sampler of \cite{GriffinWalker:2011} allows us to perform inference in arbitrary
+NRMs. We extend this slice sampler to perform inference in the class of
+dependent NRMs described in Sec.~\ref{sec:dNRM}.  The slice sampler can be used with any
+underlying CRM, but for simplicity we concentrate on an underlying gamma
+process, as described in Eq.~\ref{eqn:mixmod}.
+In the supplement we also derive a Rao-Blackwellized estimator of
+the predictive density for unobserved data using the output from the slice
+sampler.  We use this estimator to compute predictive densities in the
+experiments.
+
+Analogously to \cite{GriffinWalker:2011} we introduce a set of auxiliary
+slice variables -- one for each data point. Each data point can only belong to
+clusters corresponding to atoms larger than its slice variable. The set of
+slice variables thus defines a minimum atom size that need be represented,
+ensuring a finite number of instantiated atoms.
+
+We extend this idea to the KNRM framework. Note that, in this case, an atom
+will exhibit different sizes at different covariate locations. We refer to
+these sizes as the \emph{kernelized atom sizes}, $K(x_g^*,\mu)\pi$, obtained by
+applying a kernel $K$, evaluated at location $x^*_g$, to the raw atom $\pi$.
+Following~\cite{GriffinWalker:2011}, we introduce a local slice variable $u_{g,i}$. This allows
+us to write the joint distribution over the data points $y_{g,i}$, their
+cluster allocations $s_{g,i}$ and their slice variables $u_{g,i}$ as 
+\begin{align}
+  f({\mathbf y}, {\mathbf u}, {\mathbf s} | \pi, \mu, \theta, \phi) &=
+  \prod_{g=1}^G V_g^{n_g-1} e^{(-V_g B_{Tg})} \prod_{i=1}^{n_g} \idf{ u_{g,i}
+  < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} } q(y_{g,i} | \theta_{s_{g,i}},
+  \phi_{s_{g,i}})
+  \label{eqn:slicealmost}
+\end{align}
+where $B_{Tg} = B_{x^*_g}(\Theta) = \sum_{m=1}^\infty K(x_g^*,\mu_m)\pi_m$ and $V_g \sim \Ga(n_g,B_{Tg})$ 
+is an auxiliary variable\footnote{We parametrize the gamma
+distribution so that $X \sim \Ga(a,b)$ has mean $a/b$ and variance
+$a/b^2$}.  
+See the supplement and \cite{GriffinWalker:2011,JamesLijoiPrunster:2009} for a 
+complete derivation.
+
+In order to evaluate Eq.~\ref{eqn:slicealmost}, we need to evaluate $B_{Tg}$,
+the total mass of the unnormalized CRM at each covariate value. This involves
+summing over an infinite number of atoms -- which we do not wish to represent.
+Define $0 < L = \min{\{u_{s_{g,i}}\}}$. This gives the smallest possible
+(kernelized) atom size to which data can be attached. Therefore, if we
+instantiate all atoms with raw size greater than $L$, we will include all atoms
+associated with occupied clusters. For any value of $L$, there will be a finite
+number $M$ of atoms above this threshold. From these $M$ raw atoms, we can
+obtain the kernelized atoms above the slice corresponding to a given data
+point.
+
+We must obtain the remaining mass by marginalizing over all kernelized atoms
+that are below the slice (see the supplement).  We can
+split this mass into, \textbf{a}.) the mass due to atoms that are not instantiated (i.e. whose kernelized value
+is below the slice at all covariate locations)
+and, \textbf{b}.) the mass due to currently instantiated atoms (i.e. atoms
+whose kernelized value is above the slice at at least one covariate location)
+\footnote{If $\X$ were not 
+bounded there would be a third term consisting of raw atoms $> L$ that when
+kernelized fall below the slice everywhere.  These can be ignored by a
+judicious choice of the space $\X$ and the allowable kernel widths.}. As we show in the supplement, the first term, \textbf{a}, 
+corresponds to atoms
+$(\pi,\mu)$ where $\pi < L$, the mass of which can be written as
+\begin{align}
+  \sum_{\mu^* \in \X} \left ( R_0(\mu^*) \int_0^L (1-\exp{(-V^T
+  \K_{\mu^*}\pi)})\nu_0(d\pi) \right )
+  \label{eqn:Ltail}
+\end{align}
+where $V = (V_1, \ldots, V_G)^T$. This can be evaluated numerically for many 
+CRMs including gamma and generalized
+gamma processes \cite{GriffinWalker:2011}.
+The second term, \textbf{b}, consists of realized atoms $\{(\pi_k,\mu_k)\}$ such that 
+$K(x^*_g,\mu_k)\pi_k < L$ at covariate $x^*_g$.  We use a Monte Carlo estimate
+for \textbf{b} that we describe in the supplement.
+For box kernels term \textbf{b} vanishes, and we have found that even for the
+square exponential kernel ignoring this term yields good results.
+
+\subsection{Sampling equations}
+
+Having specified the joint distribution in terms of a finite measure with a
+random truncation point $L$ we can now describe a sampler that samples in turn
+from the conditional distributions for the auxiliary variables $V_g$, the gamma
+process parameter $\alpha = H_0(\Theta)$, the instantiated raw atom 
+sizes $\pi_m$ and
+corresponding locations in covariate space $\mu_m$ and in parameter space
+$(\theta_m, \phi_m)$, and the slice variables $u_{g,i}$.  We define some
+simplifying notation: $\K_\mu = (K(x_1^*,\mu),\ldots, K(x_G^*,\mu))^T$; $B_+ = (B_{+1},\ldots,B_{+G})^T$, 
+$B_* = (B_{*1},\ldots,B_{*G})^T$, where  $B_{+g} =
+\sum_{m=1}^M K(x^*_g,\mu_m)\pi_m$, $B_{*g} = \sum_{m=M+1}^\infty
+K(x^*_g,\mu_m)\pi_m$ so that $B_{Tg} = B_{+g} + B_{*g}$; and $n_{g,m} =
+|\{s_{g,i} : s_{g,i} = m, i \in 1,\ldots,n_g\}|$.
+\begin{itemize} 
+  \item \textbf{Auxiliary variables} $V_g$: The full conditional distribution 
+    for $V_g$ is given by
+    \begin{equation} p(V_g \, | \, n_g, V_{-g}, B_+, B_*) \propto
+      V_g^{n_g-1}\exp(-V^TB_+)\E[\exp(-V^TB_*)], \; V_g > 0 
+      \label{eqn:postvg}
+    \end{equation} 
+    which we sample using Metropolis-Hastings moves,
+    as in \cite{GriffinKolSteel:2010}.
+
+  \item \textbf{Gamma process parameter} $\alpha$: The conditional distribution 
+  for $\alpha$ is given by
+  \begin{equation}
+    \begin{aligned}
+      p(\alpha \, | \, K, V, \mu,\pi) \propto p(\alpha)\alpha^K 
+       %\exp \left ( -\alpha \int_L^\infty \left [ 1 + 
+       % \int_\X (1-e^{(-V^T \K_\mu\pi)}) R_0(d\mu) \right ] \nu_0(d\pi) \right )
+       e^{ -\alpha \left [ \int_L^\infty \nu_0(d\pi) + 
+        \int_0^L \int_\X (1-\exp{(-V^T \K_\mu\pi)}) R_0(d\mu) \nu_0(d\pi) \right ] }
+    \end{aligned}
+  \end{equation}
+  If $p(\alpha) = \Ga(a_0,b_0)$ then the posterior is also a gamma
+  distribution with parameters
+  \begin{align}
+    \label{eqn:postalphaa}
+    a &= a_0 + K \\
+    b &= b_0 + \int_L^\infty \nu_0(d\pi) + 
+    \int_\X \int_0^L (1-\exp(-V^T \K_\mu\pi))\nu_0(d\pi)  R_0(d\mu)
+    \label{eqn:postalphab}
+  \end{align}
+  where the first integral in Eq.~\ref{eqn:postalphab} can be 
+  evaluated for many processes of interest and the second integral can be
+  evaluated as in Eq.~\ref{eqn:Ltail}.
+  \item \textbf{Raw atom sizes} $\pi_m$: The posterior for atoms associated with 
+    occupied clusters is given by
+    \begin{align}
+      p(\pi_m \, | \, n_{g,m}, \mu_m, V, B_+) &\propto\pi_m^{\sum_{g=1}^G n_{g,m}} \exp \left (
+      -\pi_m \sum_{g=1}^G V_gK(x^*_g,\mu_m) \right )
+      \nu_0(\pi_m)
+      \label{eqn:pipost}
+    \end{align}
+    For an underlying gamma or generalized gamma process, the posterior of
+    $\pi_m$ will be given by a gamma distribution due to conjugacy
+    \cite{GriffinWalker:2011}.
+    There will also be a number of atoms with raw size $\pi_m>L$ that do not have
+    associated data. The number of such atoms is Poisson distributed with mean 
+    $\alpha \int_A \exp ( -V^T \K_\mu \pi)\nu_0(d\pi)R_0(d\pi)$, where 
+    $A = \{(\mu,\pi) : K(x^*_g,\mu)\pi > L, \text{ for some } g\}$ and which can be 
+    computed using the approach described for Eq.~\ref{eqn:Ltail}.
+  \item \textbf{Raw atom covariate locations} $\mu_m$: Since we assume a finite set 
+    of covariate locations, we can sample $\mu_m$ according to the discrete 
+    distribution
+    %the conditional distribution
+    \begin{align}
+      p(\mu_m \, | \, n_{g,m}, V, B_+) \propto \prod_{g=1}^G K(x^*_g,\mu_k)^{n_{g,m}} \exp \left ( -\pi_m
+      \sum_{g=1}^K V_g K(x^*_g,\mu_m) \right ) R_0(\mu_m)
+      \label{eqn:postmu}
+    \end{align}
+  %can be evaluated (up to a constant) for each location, allowing us to sample 
+  %the value of $\mu_m$ according to a discrete distribution.
+  \item \textbf{Slice variables} $u_{g,i}$: Sampled as 
+    $u_{g,i}  | \{\pi\}, \{\mu\}, s_{g,i} \sim \Un[0, K(x^*_g, \mu_{s_{g,i}})
+    \pi_{s_{g,i}}]$. %We then set $L = \min{u_{g,i}}$.
+  \item \textbf{Cluster allocations} $s_{g,i}$: The prior on $s_{g,i}$ cancels with
+    the prior on $u_{g,i}$, yielding
+  \begin{equation}
+    p(s_{g,i} = m \, | \, y_{g,i}, u_{g,i}, \theta_m, \pi_m, \mu_m) \propto
+        q(y_{g,i}|\theta_m,\phi_m) \idf{u_{g,i} < K(x^*_g,\mu_m)\pi_m}
+        \label{eqn:post_s}
+      \end{equation}
+      where only a finite number of $m$ need be evaluated.
+
+  \item \textbf{Parameter locations}: Can be sampled as in a standard mixture 
+    model \cite{GriffinWalker:2011}.
+\end{itemize}

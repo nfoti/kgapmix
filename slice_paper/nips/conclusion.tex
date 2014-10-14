@@ -1,0 +1,20 @@
+\section{Conclusion}
+
+%Something deep and impacting...
+
+We presented the class of normalized kernel CRMs, a type of dependent 
+normalized random measure.  This class generalizes previous work
+by allowing more flexibility in the underlying CRM and kernel function used to
+induce dependence.
+We developed a slice sampler to perform inference on the infinite
+dimensional measure and compared this method with samplers for a finite 
+approximation and for the SNGP.  We found that the slice sampler yields
+samples with competitive predictive accuracy at a fraction of the computational
+cost.
+
+There are many directions for future research.  
+Incorporating
+reversible-jump moves \cite{Green:Hastie:2009} such as split-merge proposals
+should allow the slice sampler to explore larger regions of the parameter space
+with a limited decrease in computational efficiency. A similar methodology may yield efficient inference algorithms for KCRMs such as the KBP, extending the existing slice sampler for the Indian Buffet Process
+\cite{TehGorGha2007}.

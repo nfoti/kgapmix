@@ -1,0 +1,63 @@
+\section{Introduction} 
+
+Nonparametric mixture models allow us to bypass the
+issue of model selection, by modeling data using a random number of mixture components
+that can grow if we observe more data. However, such models work on the
+assumption that data can be considered exchangeable. This assumption often does
+not hold in practice as distributions commonly vary with some covariate. For
+example, the proportions of different species may vary across geographic
+regions, and the distribution over topics discussed on Twitter is likely to 
+evolve over time.
+
+Recently, there has been increasing interest in \emph{dependent} nonparametric
+processes \cite{MacEachern:1999}, that extend existing nonparametric
+distributions to non-stationary data. While a nonparametric process is a
+distribution over a single measure, a dependent nonparametric process is a
+distribution over a \emph{collection} of measures, which may be associated with
+values in a covariate space. The key property of a dependent nonparametric
+process is that the measure at each covariate value is marginally distributed
+according to a known nonparametric process.
+
+A number of dependent nonparametric processes have been developed in the
+literature (\cite{Dunson:2010} $\S6$). For example, the single-p DDP \cite{MacEachern:1999} defines a
+collection of Dirichlet processes with common atom sizes but variable atom
+locations. The order-based DDP \cite{Griffin:Steel:2006} constructs a collection of
+Dirichlet processes using a common set of beta random variables, but permuting
+the order in which they are used in a stick-breaking construction. The Spatial
+Normalized Gamma Process (SNGP) \cite{Rao:Teh:2009} defines a gamma process on
+an augmented space, such that at each covariate location a subset of the atoms
+are available. This creates a dependent gamma process, that can be normalized
+to obtain a dependent Dirichlet process. The kernel beta process (KBP)
+\cite{Ren:Wang:Dunson:Carin:2011}
+defines a beta process on an augmented space, and at each covariate location
+modulates the atom sizes using a collection of kernels, to create a collection 
+of dependent beta processes.
+
+Unfortunately, while such models have a number of appealing properties,
+inference can be challenging. While there are many similarities between
+existing dependent nonparametric processes, most of the inference schemes that
+have been proposed are highly specific, and cannot be generally applied without
+significant modification. 
+
+The contributions of this paper are twofold.  First, in Section~\ref{sec:dep}
+we describe a general class of dependent nonparametric processes, based on
+defining completely random measures on an extended space.  This class of models
+includes the SNGP and the KBP as special cases. Second, we develop a
+slice sampler that is applicable for all the dependent probability measures in
+this framework. We compare our slice sampler to existing inference algorithms,
+and show that we are able to achieve superior performance over existing
+algorithms. Further, the generality of our algorithm mean we are able to easily
+modify the assumptions of existing models to better fit the data, without the
+need to significantly modify our sampler.
+
+%\begin{itemize}
+%\item Why dependent nonparametric models are useful.
+%\item Briefly mention existing DDPs and CRMs
+%\item Inference difficulties
+%\item Summary of contributions:
+%  \begin{itemize}
+%  \item Define a class of dependent normalized random measures that includes the SNGP as a special case.
+%  \item Develop a slice sampling algorithm that can be generally applied and has good performance.
+%\end{itemize}
+%\end{itemize}
+

@@ -1,0 +1,426 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips12submit_e,times}
+%\documentstyle[nips12submit_09,times,art10]{article} % For LaTeX 2.09
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+
+
+\title{Supplementary Material: \\ Slice sampling normalized kernel-weighted completely random 
+measure mixture models}
+
+\author{
+Nicholas J.~Foti \\
+Department of Computer Science\\
+Dartmouth College\\
+Hanover, NH 03755 \\
+\texttt{nfoti@cs.dartmouth.edu} \\
+\And
+Sinead A. Williamson \\
+Department of Machine Learning \\
+Carnegie Mellon University \\
+Pittsburgh, PA 15213 \\
+\texttt{sinead@cs.cmu.edu} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\GaP}{\text{GaP}}
+\newcommand{\Ga}{\text{Ga}}
+\newcommand{\idf}[1]{\mathbf 1 \left ( #1 \right )}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\bigspace}{\mathcal{X} \times \Theta \times \reals^+}
+\newcommand{\Un}{\text{Un}}
+\newcommand{\scrF}{\mathcal{F}}
+\newcommand{\norm}[1]{\left | \left | #1 \right | \right |}
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+
+\section{Slice sampler}
+
+In this section we provide an unabridged derivation of the slice sampler for normalized
+kernel CRMs.  We also present the Rao-Blackwellized estimator for the predictive
+density.
+
+\subsection{Derivation}
+Analogously to \cite{GriffinWalker:2011} we introduce a set of auxiliary
+slice variables -- one for each data point. Each data point can only belong to
+clusters corresponding to atoms larger than its slice variable. The set of
+slice variables thus defines a minimum atom size that need be represented,
+ensuring a finite number of instantiated atoms.
+
+We extend this idea to the KNRM framework. Note that, in this case, an atom
+will exhibit different sizes at different covariate locations. We refer to
+these sizes as the \emph{kernelized atom sizes}, $K(x_g^*,\mu)\pi$, obtained by
+applying a kernel $K$, evaluated at location $x^*_g$, to the raw atom $\pi$.
+Following~\cite{GriffinWalker:2011}, we introduce a local slice variable $u_{g,i}$. This allows
+us to write the joint distribution over a single data point $y_{g,i}$, its
+cluster allocation $s_{g,i}$ and its slice variable $u_{g,i}$ as 
+\begin{align}
+  f(y_{g,i}, u_{g,i}, s_{g,i}|\pi, \mu, \theta, \phi) &= 
+  B^{-1}_{Tg} \idf{ u_{g,i} < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} }  
+  q(y_{g,i} | \theta_{s_{g,i}}, \phi_{s_{g,i}})
+  \label{eqn:slicesingle}
+\end{align}
+where we have introduced the notation $B_{Tg} = B_{x^*_g}(\Theta)$.  From
+Eq.~\ref{eqn:slicesingle} we write the density of all points with covariate $x^*_g$
+as
+\begin{align}
+  f({\mathbf y}_g, {\mathbf u}_g, {\mathbf s}_g | \pi, \mu, \theta, \phi) &=
+  B^{-n_g}_{Tg} \prod_{i=1}^{n_g} \idf{ u_{g,i}
+  < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} } q(y_{g,i} | \theta_{s_{g,i}},
+  \phi_{s_{g,i}}).
+  \label{eqn:slicegroup}
+\end{align}
+
+Following \cite{GriffinWalker:2011,JamesLijoiPrunster:2009,FavaroTeh:2012} we can replace 
+$B_{Tg}^{-n_g}$, which involves an infinite sum, by relating it to the gamma
+distribution yielding
+\begin{align}
+  f({\mathbf y}_g, {\mathbf u}_g, {\mathbf s}_g | \pi, \mu, \theta, \phi) &=
+  V_g^{n_g-1} \exp{(-V_g B_{Tg})} \prod_{i=1}^{n_g} \idf{ u_{g,i}
+  < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} } q(y_{g,i} | \theta_{s_{g,i}},
+  \phi_{s_{g,i}})
+  \label{eqn:slicegroup_auxv}
+\end{align}
+where $V_g \sim \Ga(n_g,B_{Tg})$.
+The joint distribution for all data, $f({\mathbf y}, {\mathbf u}, {\mathbf
+s}|\pi, \mu, \theta, \phi)$, is then the product of Eq.~\ref{eqn:slicegroup_auxv}
+for each unique covariate $x^*_g$
+
+\begin{align}
+  f({\mathbf y}, {\mathbf u}, {\mathbf s} | \pi, \mu, \theta, \phi) &=
+  \prod_{g=1}^G V_g^{n_g-1} \exp{(-V_g B_{Tg})} \prod_{i=1}^{n_g} \idf{ u_{g,i}
+  < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} } q(y_{g,i} | \theta_{s_{g,i}},
+  \phi_{s_{g,i}}).
+  \label{eqn:slicealmost}
+\end{align}
+
+A MCMC sampler is still hard to
+construct for Eq.~\ref{eqn:slicegroup_auxv}, since the infinite sum $B_{Tg}$ 
+still makes an appearance.  To alleviate this difficulty we define a truncation
+level according to the auxiliary $u_{g,i}$ variables introduced earlier 
+\cite{KalliGriffinWalker:2011}.
+Specifically, let $0 < L = \min{\{u_{s_{g,i}}\}}$ and assume that there are $M_g$
+atoms such that $K(x^*_g,\mu_m)\pi_m \geq L$ for some $g$, and $M =
+\sum_{g=1}^G M_g$.  We can then rewrite
+$B_{Tg} = B_{+g}+B_{*g}$, where $B_{+g} = \sum_{m=1}^{M_g} K(x^*_g,\mu_m)\pi_m$ and $B_{*g} = \sum_{m=M_g+1}^\infty
+K(x^*_g,\mu_m)\pi_m$. $B_{*g}$ is therefore the 
+portion of the total mass of $B_g$ from kernelized atoms with mass less than $L$.
+With this new notation we rewrite Eq.~\ref{eqn:slicealmost} as
+\begin{equation}
+  \begin{aligned}
+    f({\mathbf y}, {\mathbf u}, {\mathbf s} | \pi, \mu, \theta, \phi) &=
+    \prod_{g=1}^G V_g^{n_g-1} \prod_{i=1}^{n_g} \idf{ u_{g,i}
+    < K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} } q(y_{g,i} | \theta_{s_{g,i}},
+    \phi_{s_{g,i}}) \\
+    &\times \exp{(-V^T B_+)} \exp{(-V^T B_*)}
+    \label{eqn:sliceonemore}
+  \end{aligned}
+\end{equation}
+where $V = [V_1, \ldots, V_G]^T$, $B_+ = [B_{+1}, \ldots, B_{+G}]^T$, and $B_* =
+[B_{*1}, \ldots, B_{*G}]^T$.  We
+then marginalize out all kernelized atoms with mass less than $L$ which allows
+us to write the joint distribution of the model as
+\begin{equation}
+  \label{eqn:slicejoint}
+  \begin{aligned}
+    p({\mathbf y}, {\mathbf u}, {\mathbf s}, V, M, \pi, \mu, \theta, \phi,
+    \alpha) &= p(\alpha)p(M|\alpha)p(\theta_{1:M})p(\pi_{1:M})p(\mu_{1:M}) \\
+    &\times \prod_{g=1}^G V_g^{n_g-1}\prod_{i=1}^{n_g} \idf{u_{g,i} <
+    K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}}}
+    q(y_{g,i}|\theta_{s_{g,i}},\phi_{s_{g,i}}) \\
+    &\times \exp{(-V^TB_+)} \E[\exp{(-V^T B_*)}]
+  \end{aligned}
+\end{equation}
+
+We recognize the expectation in Eq.~\ref{eqn:slicejoint} as the
+characteristic function of the L\'evy process underlying the kernel-weighted
+CRM (see Section 2.1 of the main text).  We can use the L\'evy-Khintchine 
+representation \cite{FristedtGray:1997} of a
+L\'evy process to simplify the expectation as
+\begin{equation}
+  \begin{aligned}
+    \E[\exp{(-V^T B_*)}] = \exp{\left (-\alpha \int_A (1-\exp{(-V^T \K_{\mu}
+    \pi)})\nu_0(d\pi)R_0(d\mu)\right )}
+  \end{aligned}
+  \label{eqn:Etail}
+\end{equation}
+where $\K_{\mu} = [K(x^*_1,\mu),\ldots,K(x^*_G,\mu)]^T$ and $A = \{(\mu,\pi) :
+K(x^*_g,\mu)\pi < L\}$.  Since we have a fixed kernel function
+($K(\cdot,\cdot) \in [0,1]$) and have assumed a finite dictionary of atom
+locations $\{\mu^*\}$, the integral in Eq.~\ref{eqn:Etail} decomposes into
+two parts.  The first part corresponds to atoms
+$(\pi,\mu)$ where $\pi < L$ which can be written as
+
+\begin{align}
+  \sum_{\mu^* \in \X} \left ( R_0(\mu^*) \int_0^L (1-\exp{(-V^T
+  \K_{\mu^*}\pi)})\nu_0(d\pi) \right )
+  \label{eqn:Ltail}
+\end{align}
+and can be evaluated numerically for many CRMs including gamma and generalized
+gamma processes \cite{GriffinWalker:2011} by using the identity
+\begin{equation}
+  \int_0^L (1-\exp{(-V^T \K_{\mu^*}\pi)})\nu_0(d\pi) ) = \psi(V^T
+  \K_{\mu^*})/\alpha - \int_L^\infty (1-\exp{(-V^T
+  \K_{\mu^*}\pi)})\nu_0(d\pi).
+  \label{eqn:intdecomp}
+\end{equation}
+For the first term in Eq.~\ref{eqn:intdecomp}, $\psi(\cdot)$ is given by the
+exponent on the right side of Eq.~\ref{eqn:Etail}.  Both terms of
+Eq.~\ref{eqn:intdecomp} can be evaluated by numerical
+methods since they are one-dimensional integrals.
+
+The second part of the integral in Eq.~\ref{eqn:Etail} consists of realized atoms 
+$\{(\pi_m,\mu_m)\}$ such that 
+%$\K_{\mu_m}\pi_m < L$ 
+$K(x^*_g,\mu_m)\pi_m < L$ 
+at covariate $x^*_g$.  We evaluate this term with a Monte
+Carlo estimate  
+\begin{align}
+  \frac{1}{Z} \sum_{g=1}^G \sum_{m=1}^M \idf{K(x^*_g,\mu_m)\pi_m < L}
+  \exp(-V_gK(x^*_g,\mu_m)\pi_m)
+  \label{eqn:Lkerntail}
+\end{align}
+where $Z = \sum_{g=1}^G \sum_{m=1}^M \idf{K(x^*_g,\mu_m)\pi_m < L}$.  Recall
+that $M$ is the number of instantiated atoms.
+In very simple cases the term 
+in Eq.~\ref{eqn:Lkerntail} can be solved for analytically; in the case
+of a box kernel, it doesn't arise at all.  In our experiments we consider both a
+box kernel and a square exponential kernel and we have found that the term
+contributes little to the accuracy of the sampler and very good results can be
+obtained by simply ignoring this term.  However, for kernels that decay more
+slowly than the square exponential kernels we use this term will likely
+be more significant.
+
+\subsection{Prediction}
+
+For a new observation $y^*$ with covariate $x^*$, using the slice sampler 
+described above we can 
+simulate from the predictive distribution $p(y^*|y)$ and propose a
+Rao-Blackwellized estimate of it without any truncation error.
+Analogously to \cite{GriffinWalker:2011}, we
+introduce a new auxiliary variable $u_*$ and allocation variable
+$s_*$ for the new observation which we describe how to sample below.  
+Then, the predictive density estimate is defined as
+\begin{equation}
+  \hat{f}(y^*) = \frac{1}{T} \sum_{i=1}^T
+  \frac{\sum_{m=1}^{M^{(i)}}\idf{K(x^*,\mu^{(i)}_m)\pi^{(i)}_m >
+  u^{(i)}_*}q \left (y^*|\theta^{(i)}_m,\phi^{(i)}_m \right )}{
+  \sum_{m=1}^{M^{(i)}}
+  \idf{K(x^*,\mu^{(i)}_m)\pi^{(i)}_m > u^{(i)}_*} }
+  \label{eqn:rbpred}
+\end{equation}
+where $M^{(i)}$ is the number of used clusters in sample $i$ and $u^{(i)}_*$
+and $s^{(i)}_*$ are the $i$'th sample of $u_*$ and $s_*$ respectively.
+We sample $s_*$ from a discrete distribution with
+\begin{equation}
+  p(s_* = m) \propto \idf{u_* < K(x^*,\mu_m)\pi_m}
+  \label{eqn:spred}
+\end{equation}
+The only other changes to the sampler is that when sampling $V_g$,
+$\{u_{g,i}\}$, $M$ and $\{\pi_m\}$ with data allocated to them, a sample size
+of $n_g$ is used, rather than $n_g -1$.  The same sampling methods can be used
+for each of these variables.  We use this estimator in the experiments to
+estimate the predictive density on a fine grid of values.
+
+%\include{samplingeqns}
+
+\section{Finite normalized KGaP}
+\label{sec:finitegap}
+
+In this section, we describe the finite normalized KGaP model used in the Experiments section of the main paper.
+
+A gamma process (GaP) on a measurable space $\Theta$, denoted
+$\GaP(H_0,\beta)$, is a CRM with L\'evy measure $\nu(d\theta,d\pi) =
+\pi^{-1}e^{-\beta\pi}B_0(d\theta)$, where we have included the scale parameter
+for generality.  Considered as a Poisson process on $\Theta \times \reals^+$,
+a random measure drawn from a GaP, $X \sim \GaP(H_0,\beta)$, is a discrete
+measure with an infinite number of atoms \cite{Kingman:1993} where
+\begin{equation}
+  X = \sum_{m=1}^\infty \pi_m \delta_{\theta^*_m}
+  \label{eqn:gap}
+\end{equation}
+
+We can approximate the countably infinite random measure $X$ with a finite
+version $X_M$, where we restrict the measure to only have $M$ atoms.  We
+introduce the finite measure
+\begin{equation}
+  \nu_\delta(d\theta,d\pi) = \pi^{\delta-1} e^{-\beta\delta} H_0(d\theta)
+  \label{eqn:finitelevy}
+\end{equation}
+for $\delta > 0$.  As $\delta$ gets smaller more mass is placed on
+smaller values $\pi$ and so $M$ will need to be large to obtain atoms with
+significant mass.  Since $\nu_\delta$ is proportional to the density of a
+$\Ga(\delta,\beta)$ random variable it is easy to compute $\nu_\delta(\Theta
+\times \reals^+)$ as
+\begin{equation}
+  \int_{\Theta \times \reals^+} \pi^{\delta-1} e^{-\beta\delta} H_0(d\theta) =
+  H_0(\Theta) \frac{\Gamma(\delta)}{\beta^\delta}
+  \label{eqn:finitelevytotal}
+\end{equation}
+which for $\delta > 0$ is finite. In fact, using $\ref{eqn:finitelevy}$ as the
+rate measure of a finite Poisson process on $\Theta \times \reals^+$ and
+defining $X_M$ as in Eq.~\ref{eqn:gap} one has that
+$\E[M] = \nu_\delta(\Theta \times \reals^+)$ \cite{Kingman:1993}.
+
+It is easy to see that as $\delta \rightarrow 0$ the finite rate measure
+converges to that of a GaP
+\begin{equation}
+  \frac{\nu_\delta(d\theta,d\pi)}{\nu(d\theta,d\pi)} = \frac{\pi^{\delta-1}
+  e^{-\beta\pi} H_0(d\theta)}{ \pi^{-1} e^{-\beta\pi} H_0(d\theta)} =
+  \pi^\delta \rightarrow 1
+  \label{eqn:finitelimit}
+\end{equation}
+In practice we choose the number of
+desired atoms, $M$, and then set $\delta = 1/M$.  
+%This process works in the opposite direction as well, 
+%that is, given a $\delta$ we can determine the number of atoms needed to represent masses of size 
+%$\delta$.  This is how we determine that approximately $10^{18}$ atoms are needed for the finite 
+%sampler to represent the sizes of jumps sampled by the slice sampler.   
+In what follows we only 
+consider the case $\beta = 1$ and so we drop it from our notation.
+
+With a finite approximation to a gamma process, we construct a finite
+version of a kernel GaP and then normalize it.  Let $A$ be measurable on
+$\Theta$ and
+define similarly as the infinite version
+\begin{equation}
+  B^M_{x}(A) = \sum_{m=1}^M K(x,\mu_m)\pi_m \delta_{\theta^*_m}(A)
+  \label{eqn:finitekcrm}
+\end{equation}
+where $\pi_m \sim \Ga(1/M,1)$ and $\theta^*_m \sim H_0(d\theta)$.  We can then
+define the finite KNRM
+\begin{equation}
+  P^M_{x}(A) = \sum_{m=1}^M \frac{ K(x,\mu_m)\pi_m }{\sum_{l=1}^M K(x,\mu_l)\pi_l}
+  \delta_{\theta^*_m}(A)
+  \label{eqn:finiteknrm}
+\end{equation}
+We can use then use $P^M_x$ as a prior for the mixture model described in the main text. 
+
+\subsection{Gibbs sampler}
+
+Since there are only a finite number of atoms in the approximation described in
+Section \ref{sec:finitegap}, there is no need to perform the marginalization of
+small atoms required for the slice sampler.  This allows a simple Gibbs sampler
+to be derived when using the finite approximation.  We describe the sampling
+equations for the normalized KGaP below, the model parameters are sampled the
+same as with the slice sampler.  Note that one 
+could also design reversible-jump moves \cite{Green:Hastie:2009} using the finite 
+approximation presented here.
+
+\begin{itemize}
+  \item \textbf{Cluster allocations} $s_{g,i}$: The conditional distribution
+    for $s_{g,i}$ is given by (up to a constant)
+    \begin{equation}
+      p(s_{g,i} = m \, | \, y_{g,i}, \pi_m, \mu_m, \theta_m, \phi_m) \propto
+      K(x^*_g,\mu_m)\pi_m q(y_{g,i}|\theta_m,\phi_m)
+    \end{equation}
+    for $1 \leq m \leq M$.  This is a finite discrete distribution and is easily 
+    sampled.
+
+  \item \textbf{Raw atom sizes} $\pi_m$: The conditional distributions for the atoms sizes 
+    up to a constant is given by
+    \begin{equation}
+      p(\pi_m \, | \, \{s\}, \{\mu\}, \{\pi_{-m}\}) \propto \Ga(1/M,1)\prod_{g=1}^G\prod_{i=1}^{n_g} 
+      \frac{ K(x^*_g,\mu_{s_{g,i}})\pi_{s_{g,i}} }{ \sum_{l=1}^M
+      K(x^*_g,\mu_l)\pi_l}
+    \end{equation}
+    This distribution could be sampled with Metropolis-Hastings, however we
+    have found slice sampling \cite{DamlenWakefieldWalker:1999} to be effective.
+    
+  \item \textbf{Raw atom covariate locations} $\mu_m$: Since we assume a finite
+    set of covariate locations, the conditional distribution is give by
+    \begin{equation}
+      p(\mu_m = \mu^*_p \, | \, \{s\}, \{\pi\}, \{\mu_{-m}\}) \propto R_0(\mu^*_p)
+      \prod_{g=1}^G \prod_{i=1}^{n_g} \frac{
+      K(x^*_g,\mu_{s_{g,i}})^{\idf{s_{g,i}\neq m}}
+      K(x^*_g,\mu^*_p)^{\idf{s_{g,i}=m}} \pi_{s_{g,i}} }
+      { \sum_{l \neq m}K(x^*_g,\mu_l)\pi_l + K(x^*_g, \mu^*_p)\pi_m }.
+    \end{equation}
+    This is a finite discrete distribution and is easily sampled.
+
+\end{itemize}
+
+
+\section{Extra experimental results}
+
+In Table 
+\ref{tab:rbpredll} 
+we show the held-out predictive log-likelihoods
+obtained with the Rao-Blackwellized estimator for the slice sampler using both
+the box and square exponential (SE) kernels.  The Rao-Blackwellized estimator 
+results in substantially larger predictive log-likelihoods than the estimator in the main paper.
+
+\begin{table}[h]
+  \centering
+  \caption{Rao-Blackwellized estimates of held-out predictive log-likelihood.}
+  \vspace{3pt}
+  \begin{tabular}{|c|c|c|c|}
+    \hline
+    & \textbf{Synthetic} & \textbf{CMB} & \textbf{Motorcycle} \\
+    \hline
+    Box & -2.58 (0.66) & -0.06 (0.04) & -0.40 (0.11) \\
+    \hline
+    SE & NA & -0.14 (0.03) & -0.42 (0.12) \\
+    \hline
+  \end{tabular}
+  \label{tab:rbpredll}
+\end{table}
+
+
+%\begin{table}[h]
+%
+%  \centering
+%
+%  \caption{Rao-Blackwellized estimates of held-out predictive log-likelihood.}
+%
+%  \vspace{3pt}
+%
+%  \begin{tabular}{|c|c|c|c|}
+%
+%    \hline
+%
+%    & \textbf{Synthetic} & \textbf{CMB} & \textbf{Motorcycle} \\
+%
+%    \hline
+%
+%    Box & -2.23 (0.06) & -0.11 (0.004) & -0.28 (0.008) \\
+%
+%    \hline
+%
+%    SE & NA & -0.18 (0.004) & -0.27 (0.007) \\
+%
+%    \hline
+%
+%  \end{tabular}
+%
+%  \label{tab:rbpredll}
+%
+%\end{table}
+%
+
+
+\bibliography{nips2012_supp}
+\bibliographystyle{unsrt}
+
+
+\end{document}

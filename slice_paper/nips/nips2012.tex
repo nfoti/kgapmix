@@ -1,0 +1,87 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips12submit_e,times}
+%\documentstyle[nips12submit_09,times,art10]{article} % For LaTeX 2.09
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{subfigure}
+
+\usepackage{xcolor}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\GaP}{\text{GaP}}
+\newcommand{\Ga}{\text{Ga}}
+\newcommand{\idf}[1]{\mathbf 1 \left ( #1 \right )}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\K}{\mathcal{K}}
+%\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\bigspace}{\mathcal{X} \times \Theta \times \reals^+}
+\newcommand{\Un}{\text{Un}}
+\newcommand{\scrF}{\mathcal{F}}
+\newcommand{\norm}[1]{\left | \left | #1 \right | \right |}
+\newcommand{\N}{\text{N}}
+
+
+\title{Slice sampling normalized kernel-weighted completely random measure
+mixture models}
+
+
+\author{
+Nicholas J.~Foti \\
+Department of Computer Science\\
+Dartmouth College\\
+Hanover, NH 03755 \\
+\texttt{nfoti@cs.dartmouth.edu} \\
+\And
+Sinead A. Williamson \\
+Department of Machine Learning \\
+Carnegie Mellon University \\
+Pittsburgh, PA 15213 \\
+\texttt{sinead@cs.cmu.edu} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+  A number of dependent nonparametric processes have been
+  proposed to model non-stationary data with unknown latent dimensionality.
+  However, the inference algorithms are often slow and unwieldy, and are in
+  general highly specific to a given model formulation. In this paper, we
+  describe a large class of dependent nonparametric processes, including several existing
+  models, and present a slice sampler that allows efficient inference across
+  this class of models.
+\end{abstract}
+
+% Body
+\input{intro}
+%\input{background}
+\input{kernelmodels}
+\input{slice}
+\input{exper}
+\input{conclusion}
+
+\subsubsection*{Acknowledgments}
+NF was funded by grant AFOSR FA9550-11-1-0166.  
+SW was funded by grants NIH R01GM087694 and AFOSR FA9550010247.  
+
+\newpage
+
+\bibliography{nips2012}
+\bibliographystyle{unsrt}
+
+\end{document}

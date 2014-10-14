@@ -1,0 +1,34 @@
+\section{Background}
+\subsection{Completely random measures and normalized random measures}
+A completely random measure (CRM, CITE:KINGMAN) is a distribution over
+discrete\footnote{with, possibly, a deterministic continuous component} measures
+$B$ on some measureable space $\Omega$ such that, for any disjoint subsets
+$A_k\in\Omega$, the masses $B(A_k)$ are independent. Commonly used examples of
+CRMs include the gamma process, the generalized gamma process, the beta process,
+and the stable process. A CRM is uniquely categorized by a L\'{e}vy measure
+$\nu$ on $\Omega\times\reals_+$, which controls the location and size of the
+jumps. We can interpret a CRM as a Poisson process on $\Omega\times\reals_+$
+with mean measure $\nu$.
+
+A distribution over probability measures can be obtained by normalizing the
+random measure $B$. Such distributions are often referred to as normalized
+random measures (NRM, CITE:KINGMAN). The most commonly used example of an NRM is
+the Dirichlet process, which can be obtained as a normalized gamma process.
+Other CRMs yield NRMs with different properties -- for example a normalized
+gamma process can have heavier tails than a Dirichlet process (IS THIS TRUE?
+DETAILS ABOUT SOME OTHER NRMs).
+
+Most research attention has focused on the Dirichlet process, due in part to its
+conjugacy to the multinomial distribution which allows us to develop a number of
+samplers. More recently, SOMETHING ABOUT THE JAMES PSEUDO-CONJUGACY RESULTS FOR
+NRMS. This has led to the development of efficient auxiliary variable inference
+algorithms for arbitrary NRMs. (CITE: GRIFFIN, OTHERS)
+
+%\subsection{Dependent nonparametric processes}
+%Most nonparametric priors, such as the Dirichlet process, gamma process, or beta process, are used to model a single dataset, that is assumed to be exchangeable. Dependent nonparametric processes [CITE: MACEACHERN NDP PAPER) extend such priors to give distributions over \emph{collections} of datasets, which may be associated with values in a covariate space. The key property of a dependent nonparametric process is that the marginal distribution at each covariate value is distributed according to a known nonparametric process.
+
+%A number of dependent nonparametric processes have been developed in the literature. For example, the single-p DDP [CITE:MACEACHERN] defines a collection of Dirichlet processes with common atom sizes but variable atom locations. The order-based DDP [CITE:GRIFFIN] constructs a collection of Dirichlet processes using a common set of beta random variables, but permuting the order in which they are used in a stick-breaking construction. The Spatial Normalized Gamma Process (SN$\Gamma$P, CITE:RAO/TEH) defines a gamma process on an augmented space, such that at each covariate location a subset of the atoms are available. This creates a dependent gamma process, that can be normalized to obtain a dependent Dirichlet process. The kernel beta process (KBP, CITE) defines a beta process on an augmented space, and at each covariate location modulates the atom sizes using a collection of kernels, to create a collection  of dependent beta processes.
+
+%Unfortunately, while such models have a number of appealing properties, inference can be challenging. [COMMENT ON INFERENCE] In Section~\ref{sec:dep} we describe a general class dependent nonparametric processes, based on defining completely random measures on an extended space.  This class of models includes the KBP and the SN$\Gamma$P as special cases. We develop a slice sampler that is applicable for all normalized random measures in this framework, and demonstrate that the sampler achieves at least as good solutions as obtained by existing methods and runs much faster.
+%DO WE WANT TO GO INTO SPECIFIC DETAILS HERE ABOUT THE SNGP AND KBP?
+

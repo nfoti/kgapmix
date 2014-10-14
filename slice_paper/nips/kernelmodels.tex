@@ -1,0 +1,143 @@
+\section{Constructing dependent nonparametric models using kernels}\label{sec:dep}
+
+In this section, we describe a general class of dependent completely random
+measures, that includes the kernel beta process as a special case. We then
+describe the class of dependent normalized random measures obtained by
+normalizing these dependent completely random measures, and show that the SNGP
+lies in this framework.
+
+\subsection{Kernel CRMs}
+A completely random measure (CRM) \cite{Kingman:1967,LijoiPrunster:2009} is a distribution over
+discrete\footnote{with, possibly, a deterministic continuous component} measures
+$B$ on some measurable space $\Omega$ such that, for any disjoint subsets
+$A_k\subset\Omega$, the masses $B(A_k)$ are independent. Commonly used examples of
+CRMs include the gamma process, the generalized gamma process, the beta process,
+and the stable process. A CRM is uniquely categorized by a L\'{e}vy measure
+$\nu(d\omega,d\pi)$ on $\Omega\times\reals_+$, which controls the location and size of the
+jumps. We can interpret a CRM as a Poisson process on $\Omega\times\reals_+$
+with mean measure $\nu(d\omega,d\pi)$.
+
+Let $\Omega = (\X \times \Theta)$, and let $\Pi = \{(\mu_k,\theta_k,\pi_k)\}_{k=1}^\infty$ be a Poisson process on the
+space $\bigspace$ with associated product $\sigma$-algebra.  The space has
+three components: $\X$, a bounded space of covariates; $\Theta$, a space of
+parameter values; and $\reals^+$, the space of atom masses.  Let the 
+mean measure of $\Pi$ be described by the positive L\'evy
+measure $\nu(d\mu,d\theta,d\pi)$.  While the construction herein applies for
+any such L\'evy measure, we focus on the class of L\'evy measures that
+factorize as $\nu(d\mu,d\theta,d\pi) = R_0(d\mu)H_0(d\theta)\nu_0(d\pi)$.  This
+corresponds to the class of homogeneous CRMs, where the size of an atom is
+independent of its location in $\Theta \times \X$, and covers most CRMs
+encountered in the literature.  We assume that $\X$ is a discrete space with
+$P$ unique values, $\mu^*_p$, in order to simplify the exposition, and without
+loss of generality we assume that $R_0(\X)=1$.  Additionally,
+let $K(\cdot,\cdot) : \X \times \X \rightarrow [0,1]$ be a bounded kernel
+function.  Though any such kernel may be used, for
+concreteness we only consider a box kernel and square exponential kernel
+defined as
+\begin{itemize}
+  \item{\textbf{Box kernel:}}
+    $K(x,\mu) = \idf{\norm{x-\mu} < W}$, where we call $W$ the width.
+  \item{\textbf{Square exponential kernel:}}
+    $K(x,\mu) = \exp \left ( -\psi \norm{x-\mu}^2 \right )$, for 
+    $\norm{\cdot}$ a dissimilarity measure, and $\psi > 0$ a fixed
+    constant.
+\end{itemize}
+
+
+Using the setup above we define a kernel-weighted CRM (KCRM) at a fixed
+covariate $x \in \X$ and for $A$ measurable as
+\begin{equation}
+\textstyle  B_x(A) = \sum_{m=1}^\infty K(x,\mu_m)\pi_m \delta_{\theta_m}(A)
+  \label{eqn:kcrm}
+\end{equation}
+which is seen to be a CRM on $\Theta$ by the mapping theorem for Poisson
+processes \cite{Kingman:1993}.  For a fixed set of observations $(x_1,\ldots,x_G)^T$
+we define $\mathcal{B}(A) = (B_{x_1}(A),\ldots,B_{x_G}(A))^T$ as the vector of
+measures of the KCRM at the observed covariates.
+CRMs are characterized by their
+characteristic function (CF) \cite{FristedtGray:1997} which for the 
+CRM $\mathcal{B}$ can be written as
+\begin{equation}
+  \E[\exp(-v^T\mathcal{B}(A))] = \exp \left ( -\int_{\X \times A \times \reals^+}
+  (1-\exp(-v^T\K_\mu\pi)\nu(d\mu,d\theta,d\pi))\right )
+  \label{eqn:kcrmcf}
+\end{equation}
+where $v \in \reals^G$ and $\K_\mu = (K(x_1,\mu),\ldots,K(x_G,\mu))^T$.
+Equation \ref{eqn:kcrmcf} is easily derived from the general form of the CF of
+a Poisson process \cite{Kingman:1993} and by noting that the one-dimensional CFs are 
+exactly those of the individual $B_{x_i}(A)$.  
+%Equation \ref{eqn:kcrmcf} is necessary for the derivation of the slice sampler.  
+See \cite{Ren:Wang:Dunson:Carin:2011} for a discussion of the dependence structure
+between $B_x$ and $B_{x'}$ for $x,x' \in \X$.
+
+Taking $\nu_0$ to be the L\'evy measure of a beta process \cite{Hjort:1990} results
+in the KBP.  Alternatively, taking $\nu_0$ as the L\'evy measure of a
+gamma process, $\nu_{\text{GaP}}$ \cite{Ferguson:1973}, and $K(\cdot,\cdot)$ as the
+box kernel we recover the unnormalized form of the SNGP.
+
+\subsection{Kernel NRMs}
+\label{sec:dNRM} 
+
+A distribution over probability measures can be obtained by starting from a
+CRM, and normalizing the resulting random measure.
+Such distributions are often referred to as normalized random measures (NRM)
+\cite{Regazzini:Lijoi:Prunster:2003}. The most commonly used example of an NRM is the Dirichlet
+process, which can be obtained as a normalized gamma process
+\cite{Ferguson:1973}.  Other CRMs yield NRMs with different properties -- for
+example a normalized generalized gamma process can have heavier tails than a Dirichlet
+process \cite{LijoiMenaPrunster:2007}.
+
+We can define a class of dependent NRMs in a similar manner, starting from the
+KCRM defined above. Since each marginal measure $B_x$ of $\mathcal{B}$ is a
+CRM, we can normalize it by its total mass, $B_x(\Theta)$, to produce a NRM
+\begin{equation} 
+  P_x(A) = B_x(A) / B_x(\Theta) = \sum_{m=1}^\infty
+  \frac{K(x,\mu_m)\pi_m}{\sum_{l=1}^\infty K(x,\mu_l)\pi_l}\delta_{\theta_m}(A)
+  \label{eqn:nkcrm} 
+\end{equation} 
+This formulation of a kernel NRM (KNRM) is
+similar to that in \cite{Griffin:2007} for Ornstein-Uhlenbeck NRMs (OUNRM).
+While the OUNRM framework allows for arbitrary CRMs, in theory,
+extending it to arbitrary kernel functions is non-trivial.
+A fundamental difference between OUNRMs and normalized KCRMs is that the 
+marginals of an 
+OUNRM follow a specified process, whereas the marginals of a KCRM may be
+different than the underlying CRM.
+
+A common use in statistics and machine learning for NRMs is as prior
+distributions for mixture models with an unbounded number of components
+\cite{FavaroTeh:2012}.  Analogously, covariate-dependent NRMs can be used as priors for
+mixture models where the probability of being associated with a mixture
+component varies with the covariate \cite{Rao:Teh:2009,Griffin:2007}.  For concreteness, we
+limit ourselves to a kernel gamma process (KGaP) which we denote as
+$\mathcal{B} \sim \text{KGaP}(K, R_0, H_0, \nu_{\text{GaP}})$, although the
+slice sampler can be adapted to any normalized KCRM.
+
+Specifically, we observe data $\{(x_j,y_j)\}_{j=1}^N$ where $x_j \in \X$
+denotes the covariate of observation $j$ and $y_j \in \reals^d$ denotes
+the quantities we wish to model.  Let $x^*_g$ denote the $g$th unique covariate
+value among all the $x_j$ which induces a partition on the observations
+so that observation $j$ belongs to group $g$ if $x_j = x^*_g$.  We
+denote the $i$th observation corresponding to $x^*_g$ as $y_{g,i}$.
+
+Each observation is associated with a mixture component which we denote as
+$s_{g,i}$ which is drawn according to a normalized KGaP on a parameter space
+$\Theta$, such that $(\theta,\phi) \in \Theta$, where $\theta$ is a mean and $\phi$
+a precision.
+Conditional on $s_{g,i}$, each observation is then drawn from some density
+$q(\cdot|\theta,\phi)$ which we assume to be $\N(\theta,\phi^{-1})$.  The full model
+can then be specified as 
+\begin{equation}
+  \begin{aligned} 
+    P_g(A) | \mathcal{B} &\sim B_g(A)/B_g(\Theta) \\
+    s_{g,i} | P_g &\sim \sum_{m=1}^\infty \frac{ K(x^*_g,\mu_m)\pi_m }
+    { \sum_{l=1}^\infty K(x^*_g,\mu_l)\pi_l } \delta_{m} \\
+    (\theta^*_m,\phi^*_m) &\sim H_0(d\theta,d\phi) \\
+    y_{g,i} | s_{g,i}, \{(\theta^*,\phi^*)\} &\sim 
+    q(y_{g,i}|\theta^*_{s_{g,i}},\phi^*_{s_{g,i}}) 
+  \end{aligned}
+  \label{eqn:mixmod}
+\end{equation}
+
+If $K(\cdot,\cdot)$ is a box kernel, Eq.~\ref{eqn:mixmod} describes a
+SNGP mixture model \cite{Rao:Teh:2009}.
